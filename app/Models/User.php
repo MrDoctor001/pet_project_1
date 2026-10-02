@@ -18,7 +18,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * Get the attributes that should be cast.
+     * Атрибуты, которые должны быть преобразованы в определенные типы
      *
      * @return array<string, string>
      */
