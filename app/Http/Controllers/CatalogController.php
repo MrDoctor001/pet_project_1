@@ -24,6 +24,9 @@ class CatalogController extends Controller
         return view('catalog.index', compact('products', 'categories'));
     }
 
+    /**
+     * Страница категории
+     */
     public function category(Category $category): View
     {
         $products = $category->products()
