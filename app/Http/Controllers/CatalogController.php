@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\View\View;
 
@@ -18,6 +19,25 @@ class CatalogController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('catalog.index', compact('products'));
+        $categories = Category::query()->orderBy('name')->get();
+
+        return view('catalog.index', compact('products', 'categories'));
+    }
+
+    public function category(Category $category): View
+    {
+        $products = $category->products()
+            ->where('is_active', true)
+            ->with('category')
+            ->latest()
+            ->paginate(12);
+
+        $categories = Category::query()->orderBy('name')->get();
+
+        return view('catalog.index', [
+            'products' => $products,
+            'categories' => $categories,
+            'currentCategory' => $category,
+        ]);
     }
 }
