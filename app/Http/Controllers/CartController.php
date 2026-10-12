@@ -51,7 +51,6 @@ class CartController extends Controller
         }
 
         return view('cart.index', compact('cart', 'products', 'total'));
-
     }
 
     /**
@@ -83,6 +82,6 @@ class CartController extends Controller
 
         $request->session()->put('cart', $cart);
 
-        return back()->with('status', 'Продукт удален из корзины');
+        return back()->with('status', 'Товар удалён из корзины');
     }
 }

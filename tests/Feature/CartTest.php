@@ -1,9 +1,6 @@
 <?php
 
 use App\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('adding a product stores it in the session cart and redirects back', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
