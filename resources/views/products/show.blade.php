@@ -45,19 +45,46 @@
                     </p>
                 @endif
 
-                <div class="flex flex-col gap-2">
+                @if ($product->stock > 0)
+                    <form method="POST" action="{{ route('cart.store', $product) }}" class="flex flex-col gap-2">
+                        @csrf
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <label for="quantity" class="sr-only">Количество</label>
+                            <input
+                                id="quantity"
+                                name="quantity"
+                                type="number"
+                                min="1"
+                                max="{{ $product->stock }}"
+                                value="{{ old('quantity', 1) }}"
+                                class="w-24 rounded-xl border border-gray-300 bg-white px-4 py-3 text-center text-sm font-medium transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 focus:outline-none"
+                            >
+
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm shadow-indigo-600/30 transition hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            >
+                                <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                </svg>
+                                В корзину
+                            </button>
+                        </div>
+
+                        @error('quantity')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </form>
+                @else
                     <button
                         type="button"
                         disabled
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm shadow-indigo-600/30 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:self-start"
+                        class="cursor-not-allowed rounded-xl bg-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-500 sm:self-start"
                     >
-                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                        </svg>
-                        В корзину
+                        Нет в наличии
                     </button>
-                    <p class="text-xs text-gray-500">Корзина появится на следующих этапах.</p>
-                </div>
+                @endif
 
                 @if ($product->description)
                     <div class="flex flex-col gap-2 border-t border-gray-200 pt-6">
