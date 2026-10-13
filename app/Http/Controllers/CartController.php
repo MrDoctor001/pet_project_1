@@ -28,7 +28,7 @@ class CartController extends Controller
 
         $request->session()->put('cart', $cart);
 
-        return back()->with('status', 'Продукт добавлен в корзину');
+        return back()->with('status', 'Товар добавлен в корзину');
     }
 
     /**
@@ -68,7 +68,7 @@ class CartController extends Controller
 
         $request->session()->put('cart', $cart);
 
-        return back()->with('status', 'Количество продукта в корзине обновлено');
+        return back()->with('status', 'Количество товара в корзине обновлено');
     }
 
     /**
