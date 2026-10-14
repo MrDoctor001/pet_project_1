@@ -35,7 +35,7 @@
                     Каталог
                 </a>
 
-                @php($cartCount = array_sum(session('cart', [])))
+                @php($cartCount = app(\App\Services\Cart::class)->count())
 
                 <a
                     href="{{ route('cart.index') }}"

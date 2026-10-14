@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\Cart;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -10,9 +11,9 @@ use Illuminate\View\View;
 class CartController extends Controller
 {
     /**
-     * Добавляет продукт в корзину
+     * Добавляет товар в корзину
      */
-    public function store(Request $request, Product $product): RedirectResponse
+    public function store(Request $request, Product $product, Cart $cart): RedirectResponse
     {
         abort_if(! $product->is_active, 404);
 
@@ -20,13 +21,7 @@ class CartController extends Controller
             'quantity' => ['required', 'integer', 'min:1', 'max:'.$product->stock],
         ]);
 
-        $cart = $request->session()->get('cart', []);
-
-        $cart[$product->id] = ($cart[$product->id] ?? 0) + (int) $validated['quantity'];
-
-        $cart[$product->id] = min($cart[$product->id], $product->stock);
-
-        $request->session()->put('cart', $cart);
+        $cart->add($product, (int) $validated['quantity']);
 
         return back()->with('status', 'Товар добавлен в корзину');
     }
@@ -34,53 +29,35 @@ class CartController extends Controller
     /**
      * Отображает страницу корзины
      */
-    public function index(Request $request): View
+    public function index(Cart $cart): View
     {
-        $cart = $request->session()->get('cart', []);
-
-        $products = Product::query()
-            ->whereIn('id', array_keys($cart))
-            ->where('is_active', true)
-            ->with('category')
-            ->get();
-
-        $total = 0;
-
-        foreach ($products as $product) {
-            $total += $product->price * $cart[$product->id];
-        }
-
-        return view('cart.index', compact('cart', 'products', 'total'));
+        return view('cart.index', [
+            'cart' => $cart->quantities(),
+            'products' => $cart->products(),
+            'total' => $cart->total(),
+        ]);
     }
 
     /**
-     * Обновляет количество продукта в корзине
+     * Обновляет количество товара в корзине
      */
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product, Cart $cart): RedirectResponse
     {
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:'.$product->stock],
         ]);
 
-        $cart = $request->session()->get('cart', []);
+        $cart->update($product, (int) $validated['quantity']);
 
-        $cart[$product->id] = (int) $validated['quantity'];
-
-        $request->session()->put('cart', $cart);
-
-        return back()->with('status', 'Количество товара в корзине обновлено');
+        return back()->with('status', 'Количество товара обновлено');
     }
 
     /**
-     * Удаляет продукт из корзины
+     * Удаляет товар из корзины
      */
-    public function destroy(Request $request, Product $product): RedirectResponse
+    public function destroy(Product $product, Cart $cart): RedirectResponse
     {
-        $cart = $request->session()->get('cart', []);
-
-        unset($cart[$product->id]);
-
-        $request->session()->put('cart', $cart);
+        $cart->remove($product);
 
         return back()->with('status', 'Товар удалён из корзины');
     }

@@ -25,7 +25,7 @@ class OrderItem extends Model
     }
 
     /**
-     * Получить товар, который принадлежит товару.
+     * Товар из каталога, на который ссылается строка заказа.
      *
      * @return BelongsTo<Product, $this>
      */
