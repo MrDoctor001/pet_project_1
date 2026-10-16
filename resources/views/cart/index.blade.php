@@ -97,16 +97,12 @@
                         </div>
                     </dl>
 
-                    <div class="flex flex-col gap-2">
-                        <button
-                            type="button"
-                            disabled
-                            class="cursor-not-allowed rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white opacity-50"
-                        >
-                            Оформить заказ
-                        </button>
-                        <p class="text-center text-xs text-gray-500">Оформление заказа появится на следующем этапе.</p>
-                    </div>
+                    <a
+                        href="{{ route('checkout.create') }}"
+                        class="rounded-xl bg-indigo-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-sm shadow-indigo-600/30 transition hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    >
+                        Оформить заказ
+                    </a>
 
                     <a href="{{ route('catalog.index') }}" class="text-center text-sm font-medium text-indigo-600 transition hover:text-indigo-500">
                         Продолжить покупки
