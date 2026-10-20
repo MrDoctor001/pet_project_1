@@ -18,7 +18,12 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'customer_name' => fake()->name(),
+            'phone' => fake()->phoneNumber(),
+            'email' => fake()->safeEmail(),
+            'address' => fake()->address(),
+            'comment' => null,
+            'total' => fake()->numberBetween(1000, 500000),
         ];
     }
 }
