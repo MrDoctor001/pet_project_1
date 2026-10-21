@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
 class CatalogController extends Controller
@@ -19,7 +20,11 @@ class CatalogController extends Controller
             ->latest()
             ->paginate(12);
 
-        $categories = Category::query()->orderBy('name')->get();
+        $categories = Category::query()
+            ->with('coverProduct')
+            ->withCount(['products' => fn (Builder $query) => $query->where('is_active', true)])
+            ->orderBy('name')
+            ->get();
 
         return view('catalog.index', compact('products', 'categories'));
     }

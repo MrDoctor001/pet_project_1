@@ -2,8 +2,8 @@
 
 @php
     $linkClasses = 'block whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition';
-    $activeClasses = 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-600/20';
-    $inactiveClasses = 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900';
+    $activeClasses = 'border-brand-600 bg-brand-600 text-white shadow-sm shadow-brand-600/20';
+    $inactiveClasses = 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900';
 @endphp
 
 <nav aria-label="Категории" class="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
