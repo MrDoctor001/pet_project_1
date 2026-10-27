@@ -27,6 +27,15 @@ test('inactive products cannot be added to the cart', function () {
         ->assertNotFound();
 });
 
+test('quantity of an inactive product cannot be updated in the cart', function () {
+    $product = Product::factory()->create(['is_active' => false, 'stock' => 10]);
+
+    $this->withSession(['cart' => [$product->id => 1]])
+        ->patch(route('cart.update', $product), ['quantity' => 2])
+        ->assertNotFound()
+        ->assertSessionHas('cart', [$product->id => 1]);
+});
+
 test('empty cart page renders', function () {
     $this->get(route('cart.index'))
         ->assertOk()

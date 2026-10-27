@@ -3,7 +3,9 @@
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\withSession;
@@ -106,4 +108,42 @@ test('placing an order with an empty cart redirects to the cart', function () {
         ->assertRedirect(route('cart.index'));
 
     expect(Order::count())->toBe(0);
+});
+
+test('checkout page redirects to the cart when no product in it is sold anymore', function () {
+    $product = Product::factory()->create(['is_active' => false, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 1]])
+        ->get(route('checkout.create'))
+        ->assertRedirect(route('cart.index'));
+});
+
+test('placing an order is rejected when no product in the cart is sold anymore', function () {
+    $product = Product::factory()->create(['is_active' => false, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 1]])
+        ->post(route('checkout.store'), validCheckoutData())
+        ->assertRedirect(route('cart.index'));
+
+    expect(Order::count())->toBe(0);
+});
+
+test('order placed by a logged-in user is linked to their account', function () {
+    $user = User::factory()->create();
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    actingAs($user)
+        ->withSession(['cart' => [$product->id => 1]])
+        ->post(route('checkout.store'), validCheckoutData());
+
+    expect(Order::sole()->user_id)->toBe($user->id);
+});
+
+test('order placed by a guest is not linked to any account', function () {
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 1]])
+        ->post(route('checkout.store'), validCheckoutData());
+
+    expect(Order::sole()->user_id)->toBeNull();
 });

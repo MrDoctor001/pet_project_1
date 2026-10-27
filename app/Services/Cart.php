@@ -23,19 +23,19 @@ class Cart
     }
 
     /**
-     * Общее количество штук в корзине
+     * Общее количество штук в корзине (без снятых с продажи товаров)
      */
     public function count(): int
     {
-        return array_sum($this->quantities());
+        return array_sum($this->availableQuantities());
     }
 
     /**
-     * Пуста ли корзина
+     * Нет ли в корзине товаров, которые можно купить
      */
     public function isEmpty(): bool
     {
-        return $this->quantities() === [];
+        return $this->availableQuantities() === [];
     }
 
     /**
@@ -87,13 +87,15 @@ class Cart
     /**
      * Активные товары, которые лежат в корзине
      *
+     * @param  bool  $lockForUpdate  Заблокировать строки товаров до конца транзакции
      * @return Collection<int, Product>
      */
-    public function products(): Collection
+    public function products(bool $lockForUpdate = false): Collection
     {
         return Product::query()
             ->whereIn('id', array_keys($this->quantities()))
             ->where('is_active', true)
+            ->when($lockForUpdate, fn ($query) => $query->lockForUpdate())
             ->with('category')
             ->get();
     }
@@ -112,6 +114,28 @@ class Cart
         }
 
         return $total;
+    }
+
+    /**
+     * Количество только тех товаров, которые всё ещё продаются
+     *
+     * @return array<int, int>
+     */
+    private function availableQuantities(): array
+    {
+        $quantities = $this->quantities();
+
+        if ($quantities === []) {
+            return [];
+        }
+
+        $activeProductIds = Product::query()
+            ->whereIn('id', array_keys($quantities))
+            ->where('is_active', true)
+            ->pluck('id')
+            ->all();
+
+        return array_intersect_key($quantities, array_flip($activeProductIds));
     }
 
     /**

@@ -12,6 +12,9 @@ use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
+    /**
+     * Страница оформления заказа
+     */
     public function create(Cart $cart): View|RedirectResponse
     {
         if ($cart->isEmpty()) {
@@ -25,6 +28,9 @@ class CheckoutController extends Controller
         ]);
     }
 
+    /**
+     * Создаёт заказ из корзины и списывает товары со склада
+     */
     public function store(StoreOrderRequest $request, Cart $cart): RedirectResponse
     {
         if ($cart->isEmpty()) {
@@ -33,7 +39,7 @@ class CheckoutController extends Controller
 
         $order = DB::transaction(function () use ($request, $cart) {
             $quantities = $cart->quantities();
-            $products = $cart->products();
+            $products = $cart->products(lockForUpdate: true);
 
             foreach ($products as $product) {
                 if ($quantities[$product->id] > $product->stock) {
@@ -45,7 +51,8 @@ class CheckoutController extends Controller
 
             $order = Order::create([
                 ...$request->validated(),
-                'total' => $cart->total(),
+                'user_id' => $request->user()?->id,
+                'total' => $products->sum(fn ($product) => $product->price * $quantities[$product->id]),
             ]);
 
             foreach ($products as $product) {

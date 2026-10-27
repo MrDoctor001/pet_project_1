@@ -54,6 +54,28 @@
                         </span>
                     @endif
                 </a>
+
+                @auth
+                    <span class="hidden px-2 text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
+
+                    @if (Route::has('logout'))
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white">
+                                Выйти
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    @if (Route::has('login'))
+                        <a
+                            href="{{ route('login') }}"
+                            class="rounded-full bg-brand-600 px-4 py-2 text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-500"
+                        >
+                            Войти
+                        </a>
+                    @endif
+                @endauth
             </nav>
         </div>
     </header>

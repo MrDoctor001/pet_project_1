@@ -43,6 +43,8 @@ class CartController extends Controller
      */
     public function update(Request $request, Product $product, Cart $cart): RedirectResponse
     {
+        abort_if(! $product->is_active, 404);
+
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:'.$product->stock],
         ]);
