@@ -56,7 +56,23 @@
                 </a>
 
                 @auth
-                    <span class="hidden px-2 text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
+                    @if (Route::has('profile.edit'))
+                        <a
+                            href="{{ route('profile.edit') }}"
+                            aria-label="Профиль"
+                            @class([
+                                'flex items-center gap-2 rounded-full px-3 py-2 transition hover:text-white sm:px-4',
+                                'bg-white/10 text-white' => request()->routeIs('profile.*'),
+                            ])
+                        >
+                            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
+                        </a>
+                    @else
+                        <span class="hidden px-2 text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
+                    @endif
 
                     @if (Route::has('logout'))
                         <form method="POST" action="{{ route('logout') }}">
