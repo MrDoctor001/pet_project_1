@@ -6,10 +6,16 @@
             <x-form-field name="email" label="Email" type="email" autocomplete="email" required autofocus />
             <x-form-field name="password" label="Пароль" type="password" autocomplete="current-password" required />
 
-            <label class="flex items-center gap-2.5 text-sm text-zinc-600">
-                <input type="checkbox" name="remember" value="1" @checked(old('remember')) class="size-4 rounded border-zinc-300 accent-brand-600">
-                Запомнить меня
-            </label>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="flex items-center gap-2.5 text-sm text-zinc-600">
+                    <input type="checkbox" name="remember" value="1" @checked(old('remember')) class="size-4 rounded border-zinc-300 accent-brand-600">
+                    Запомнить меня
+                </label>
+
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-brand-600 transition hover:text-brand-500">Забыли пароль?</a>
+                @endif
+            </div>
 
             <button
                 type="submit"

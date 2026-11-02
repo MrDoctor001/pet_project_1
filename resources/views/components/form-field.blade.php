@@ -1,4 +1,4 @@
-@props(['name', 'label', 'type' => 'text', 'required' => false])
+@props(['name', 'label', 'type' => 'text', 'required' => false, 'value' => null])
 
 <div class="flex flex-col gap-1.5">
     <label for="{{ $name }}" class="text-sm font-medium text-zinc-900">
@@ -12,7 +12,7 @@
         id="{{ $name }}"
         name="{{ $name }}"
         type="{{ $type }}"
-        value="{{ old($name) }}"
+        value="{{ old($name, $value) }}"
         @required($required)
         @error($name) aria-invalid="true" aria-describedby="{{ $name }}-error" @enderror
         {{ $attributes->class([
