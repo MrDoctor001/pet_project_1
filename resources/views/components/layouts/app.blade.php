@@ -23,7 +23,9 @@
                 {{ config('app.name') }}
             </a>
 
-            <nav class="flex items-center gap-2 text-sm font-semibold">
+            @php($cartCount = app(\App\Services\Cart::class)->count())
+
+            <nav class="hidden items-center gap-2 text-sm font-semibold sm:flex">
                 <a
                     href="{{ route('catalog.index') }}"
                     @class([
@@ -33,8 +35,6 @@
                 >
                     Каталог
                 </a>
-
-                @php($cartCount = app(\App\Services\Cart::class)->count())
 
                 <a
                     href="{{ route('cart.index') }}"
@@ -59,19 +59,16 @@
                     @if (Route::has('profile.edit'))
                         <a
                             href="{{ route('profile.edit') }}"
-                            aria-label="Профиль"
                             @class([
-                                'flex items-center gap-2 rounded-full px-3 py-2 transition hover:text-white sm:px-4',
+                                'flex items-center gap-2 rounded-full px-4 py-2 transition hover:text-white',
                                 'bg-white/10 text-white' => request()->routeIs('profile.*'),
                             ])
                         >
                             <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
-                            <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
+                            <span class="max-w-32 truncate">{{ auth()->user()->name }}</span>
                         </a>
-                    @else
-                        <span class="hidden px-2 text-zinc-400 sm:inline">{{ auth()->user()->name }}</span>
                     @endif
 
                     @if (Route::has('logout'))
@@ -93,6 +90,104 @@
                     @endif
                 @endauth
             </nav>
+
+            <div class="flex items-center gap-1 sm:hidden">
+                <a
+                    href="{{ route('cart.index') }}"
+                    aria-label="Корзина"
+                    @class([
+                        'relative flex size-11 items-center justify-center rounded-full transition hover:text-white',
+                        'bg-white/10 text-white' => request()->routeIs('cart.*', 'checkout.*'),
+                    ])
+                >
+                    <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+
+                    @if ($cartCount > 0)
+                        <span class="absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-xs font-bold text-white">
+                            {{ $cartCount }}
+                        </span>
+                    @endif
+                </a>
+
+                <details class="group" data-menu>
+                    <summary
+                        aria-label="Меню"
+                        class="flex size-11 cursor-pointer list-none items-center justify-center rounded-full transition group-open:bg-white/10 group-open:text-white hover:text-white [&::-webkit-details-marker]:hidden"
+                    >
+                        <svg class="size-6 group-open:hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                        <svg class="hidden size-6 group-open:block" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </summary>
+
+                    <nav class="absolute inset-x-0 top-16 border-t border-white/10 bg-ink-950 px-4 pt-2 pb-4 shadow-2xl">
+                        <ul class="flex flex-col gap-1 text-base font-semibold">
+                            <li>
+                                <a
+                                    href="{{ route('catalog.index') }}"
+                                    @class([
+                                        'flex rounded-xl px-3 py-3 transition hover:bg-white/5 hover:text-white',
+                                        'bg-white/10 text-white' => request()->routeIs('catalog.*'),
+                                    ])
+                                >
+                                    Каталог
+                                </a>
+                            </li>
+
+                            @auth
+                                @if (Route::has('profile.edit'))
+                                    <li>
+                                        <a
+                                            href="{{ route('profile.edit') }}"
+                                            @class([
+                                                'flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition hover:bg-white/5 hover:text-white',
+                                                'bg-white/10 text-white' => request()->routeIs('profile.*'),
+                                            ])
+                                        >
+                                            Профиль
+                                            <span class="truncate text-sm font-normal text-zinc-500">{{ auth()->user()->name }}</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                @if (Route::has('logout'))
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="flex w-full rounded-xl px-3 py-3 transition hover:bg-white/5 hover:text-white">
+                                                Выйти
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                            @else
+                                @if (Route::has('register'))
+                                    <li>
+                                        <a href="{{ route('register') }}" class="flex rounded-xl px-3 py-3 transition hover:bg-white/5 hover:text-white">
+                                            Регистрация
+                                        </a>
+                                    </li>
+                                @endif
+
+                                @if (Route::has('login'))
+                                    <li class="pt-2">
+                                        <a
+                                            href="{{ route('login') }}"
+                                            class="flex justify-center rounded-xl bg-brand-600 px-3 py-3 text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-500"
+                                        >
+                                            Войти
+                                        </a>
+                                    </li>
+                                @endif
+                            @endauth
+                        </ul>
+                    </nav>
+                </details>
+            </div>
         </div>
     </header>
 

@@ -1,5 +1,13 @@
 const AUTO_SUBMIT_DELAY_MS = 600;
 
+document.querySelectorAll('details[data-menu]').forEach((menu) => {
+    document.addEventListener('click', (event) => {
+        if (menu.open && !menu.contains(event.target)) {
+            menu.open = false;
+        }
+    });
+});
+
 document.querySelectorAll('[data-auto-submit]').forEach((input) => {
     let timer;
 
