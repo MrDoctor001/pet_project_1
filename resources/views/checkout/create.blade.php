@@ -26,11 +26,11 @@
                 <section class="flex flex-col gap-5 rounded-2xl border border-zinc-200 bg-white p-6">
                     <h2 class="text-lg font-semibold">Контактные данные</h2>
 
-                    <x-form-field name="customer_name" label="Имя и фамилия" autocomplete="name" required />
+                    <x-form-field name="customer_name" label="Имя и фамилия" autocomplete="name" :value="auth()->user()?->name" required />
 
                     <div class="grid gap-5 sm:grid-cols-2">
                         <x-form-field name="phone" label="Телефон" type="tel" autocomplete="tel" placeholder="+7 700 000 00 00" required />
-                        <x-form-field name="email" label="Email" type="email" autocomplete="email" />
+                        <x-form-field name="email" label="Email" type="email" autocomplete="email" :value="auth()->user()?->email" />
                     </div>
                 </section>
 

@@ -1,7 +1,9 @@
-{{-- Баннер и плитки показываем только на первой странице общего каталога --}}
+{{-- Баннер и плитки показываем только на первой странице общего каталога без поиска --}}
 @php
     $currentCategory ??= null;
-    $isHomePage = $currentCategory === null && $products->onFirstPage();
+    $search = request('search');
+    $catalogUrl = $currentCategory ? route('catalog.category', $currentCategory) : route('catalog.index');
+    $isHomePage = $currentCategory === null && $products->onFirstPage() && blank($search);
     $categoriesWithCover = $categories->filter(fn ($category) => $category->coverProduct !== null);
 @endphp
 
@@ -103,18 +105,51 @@
         @endif
 
         <section id="catalog" class="flex scroll-mt-24 flex-col gap-8">
-            <div class="flex flex-col gap-1">
-                @if ($isHomePage)
-                    <h2 class="text-2xl font-extrabold tracking-tight">Все товары</h2>
-                @else
-                    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $currentCategory?->name ?? 'Каталог' }}</h1>
-                @endif
-                <p class="text-zinc-500">Найдено товаров: {{ $products->total() }}</p>
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div class="flex flex-col gap-1">
+                    @if ($isHomePage)
+                        <h2 class="text-2xl font-extrabold tracking-tight">Все товары</h2>
+                    @else
+                        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $currentCategory?->name ?? 'Каталог' }}</h1>
+                    @endif
+                    <p class="text-zinc-500">
+                        Найдено товаров: {{ $products->total() }}
+                        @if (filled($search))
+                            по запросу «{{ $search }}»
+                        @endif
+                    </p>
+                </div>
+
+                <form method="GET" action="{{ $catalogUrl }}" role="search" class="flex w-full gap-2 lg:max-w-md">
+                    <div class="relative flex-1">
+                        <svg class="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        <input
+                            type="search"
+                            name="search"
+                            value="{{ $search }}"
+                            placeholder="{{ $currentCategory ? 'Поиск в категории' : 'Поиск товаров' }}"
+                            aria-label="Поиск по названию"
+                            class="w-full rounded-full border border-zinc-300 bg-white py-2.5 pr-4 pl-11 text-sm transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none"
+                        >
+                    </div>
+                    <button type="submit" class="rounded-full bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition hover:bg-brand-500">
+                        Найти
+                    </button>
+                </form>
             </div>
 
             <x-category-nav :categories="$categories" :current="$currentCategory" />
 
-            @if ($products->isEmpty())
+            @if ($products->isEmpty() && filled($search))
+                <div class="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-zinc-300 bg-white/60 px-6 py-16 text-center">
+                    <p class="font-semibold text-zinc-900">Ничего не найдено</p>
+                    <p class="text-sm text-zinc-500">
+                        Попробуйте изменить запрос или <a href="{{ $catalogUrl }}" class="font-semibold text-brand-600 hover:text-brand-500">сбросить поиск</a>
+                    </p>
+                </div>
+            @elseif ($products->isEmpty())
                 <div class="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-zinc-300 bg-white/60 px-6 py-16 text-center">
                     <svg class="size-12 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />

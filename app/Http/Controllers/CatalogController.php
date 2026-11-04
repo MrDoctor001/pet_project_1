@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CatalogController extends Controller
@@ -12,13 +13,15 @@ class CatalogController extends Controller
     /**
      * Список активных товаров
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $products = Product::query()
             ->where('is_active', true)
             ->with('category')
+            ->when($request->search, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         $categories = Category::query()
             ->with('coverProduct')
@@ -32,13 +35,15 @@ class CatalogController extends Controller
     /**
      * Страница категории
      */
-    public function category(Category $category): View
+    public function category(Request $request, Category $category): View
     {
         $products = $category->products()
             ->where('is_active', true)
             ->with('category')
+            ->when($request->search, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         $categories = Category::query()->orderBy('name')->get();
 

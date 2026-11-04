@@ -101,8 +101,21 @@
                         href="{{ route('checkout.create') }}"
                         class="rounded-xl bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-sm shadow-brand-600/30 transition hover:bg-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                     >
-                        Оформить заказ
+                        @auth
+                            Оформить заказ
+                        @else
+                            Войти и оформить заказ
+                        @endauth
                     </a>
+
+                    @guest
+                        <p class="text-center text-xs text-zinc-500">
+                            Заказ могут оформить только зарегистрированные покупатели.
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="font-medium text-brand-600 transition hover:text-brand-500">Создать аккаунт</a>
+                            @endif
+                        </p>
+                    @endguest
 
                     <a href="{{ route('catalog.index') }}" class="text-center text-sm font-medium text-brand-600 transition hover:text-brand-500">
                         Продолжить покупки

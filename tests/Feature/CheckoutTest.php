@@ -6,7 +6,6 @@ use App\Models\Product;
 use App\Models\User;
 
 use function Pest\Laravel\actingAs;
-use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\withSession;
 
@@ -29,23 +28,38 @@ function validCheckoutData(array $overrides = []): array
 }
 
 test('checkout page redirects to the cart when the cart is empty', function () {
-    get(route('checkout.create'))
+    actingAs(User::factory()->create())
+        ->get(route('checkout.create'))
         ->assertRedirect(route('cart.index'));
 });
 
 test('checkout page shows products from the cart', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
 
-    withSession(['cart' => [$product->id => 2]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 2]])
         ->get(route('checkout.create'))
         ->assertOk()
         ->assertSee($product->name);
 });
 
+test('checkout form is prefilled with the name and email of the user', function () {
+    $user = User::factory()->create(['name' => 'Диар Сарбай', 'email' => 'diar@example.com']);
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    actingAs($user)
+        ->withSession(['cart' => [$product->id => 1]])
+        ->get(route('checkout.create'))
+        ->assertOk()
+        ->assertSee('value="Диар Сарбай"', false)
+        ->assertSee('value="diar@example.com"', false);
+});
+
 test('placing an order saves it with items, reduces stock and clears the cart', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10, 'price' => 1500]);
 
-    $response = withSession(['cart' => [$product->id => 3]])
+    $response = actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 3]])
         ->post(route('checkout.store'), validCheckoutData());
 
     $order = Order::sole();
@@ -71,7 +85,8 @@ test('placing an order saves it with items, reduces stock and clears the cart', 
 test('order total and status are set by the server, not by the form', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10, 'price' => 1500]);
 
-    withSession(['cart' => [$product->id => 2]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 2]])
         ->post(route('checkout.store'), validCheckoutData(['total' => 1, 'status' => 'completed']));
 
     expect(Order::sole())
@@ -82,7 +97,8 @@ test('order total and status are set by the server, not by the form', function (
 test('placing an order requires name, phone and address', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
 
-    withSession(['cart' => [$product->id => 1]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 1]])
         ->post(route('checkout.store'), [])
         ->assertSessionHasErrors(['customer_name', 'phone', 'address']);
 
@@ -92,7 +108,8 @@ test('placing an order requires name, phone and address', function () {
 test('placing an order is rejected when there is not enough stock left', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 2]);
 
-    withSession(['cart' => [$product->id => 5]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 5]])
         ->from(route('checkout.create'))
         ->post(route('checkout.store'), validCheckoutData())
         ->assertRedirect(route('checkout.create'))
@@ -104,7 +121,8 @@ test('placing an order is rejected when there is not enough stock left', functio
 });
 
 test('placing an order with an empty cart redirects to the cart', function () {
-    post(route('checkout.store'), validCheckoutData())
+    actingAs(User::factory()->create())
+        ->post(route('checkout.store'), validCheckoutData())
         ->assertRedirect(route('cart.index'));
 
     expect(Order::count())->toBe(0);
@@ -113,7 +131,8 @@ test('placing an order with an empty cart redirects to the cart', function () {
 test('checkout page redirects to the cart when no product in it is sold anymore', function () {
     $product = Product::factory()->create(['is_active' => false, 'stock' => 10]);
 
-    withSession(['cart' => [$product->id => 1]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 1]])
         ->get(route('checkout.create'))
         ->assertRedirect(route('cart.index'));
 });
@@ -121,7 +140,8 @@ test('checkout page redirects to the cart when no product in it is sold anymore'
 test('placing an order is rejected when no product in the cart is sold anymore', function () {
     $product = Product::factory()->create(['is_active' => false, 'stock' => 10]);
 
-    withSession(['cart' => [$product->id => 1]])
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 1]])
         ->post(route('checkout.store'), validCheckoutData())
         ->assertRedirect(route('cart.index'));
 
@@ -139,11 +159,55 @@ test('order placed by a logged-in user is linked to their account', function () 
     expect(Order::sole()->user_id)->toBe($user->id);
 });
 
-test('order placed by a guest is not linked to any account', function () {
+test('guest is sent to the login page instead of the checkout page', function () {
     $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
 
     withSession(['cart' => [$product->id => 1]])
-        ->post(route('checkout.store'), validCheckoutData());
+        ->get(route('checkout.create'))
+        ->assertRedirect(route('login'));
+});
 
-    expect(Order::sole()->user_id)->toBeNull();
+test('guest cannot place an order', function () {
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 1]])
+        ->post(route('checkout.store'), validCheckoutData())
+        ->assertRedirect(route('login'));
+
+    expect(Order::count())->toBe(0)
+        ->and($product->fresh()->stock)->toBe(10);
+});
+
+test('after logging in the guest returns to the checkout page with their cart', function () {
+    $user = User::factory()->create(['password' => 'password']);
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 2]])
+        ->get(route('checkout.create'))
+        ->assertRedirect(route('login'));
+
+    post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('checkout.create'))
+        ->assertSessionHas('cart', [$product->id => 2]);
+});
+
+test('cart asks a guest to log in before placing an order', function () {
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    withSession(['cart' => [$product->id => 1]])
+        ->get(route('cart.index'))
+        ->assertOk()
+        ->assertSee('Войти и оформить заказ')
+        ->assertSee('Заказ могут оформить только зарегистрированные покупатели');
+});
+
+test('cart offers a logged-in user to place an order right away', function () {
+    $product = Product::factory()->create(['is_active' => true, 'stock' => 10]);
+
+    actingAs(User::factory()->create())
+        ->withSession(['cart' => [$product->id => 1]])
+        ->get(route('cart.index'))
+        ->assertOk()
+        ->assertSee('Оформить заказ')
+        ->assertDontSee('Войти и оформить заказ');
 });
