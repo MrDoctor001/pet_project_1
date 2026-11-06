@@ -86,16 +86,7 @@
                                     </span>
                                 </div>
 
-                                <span @class([
-                                    'rounded-full px-3 py-1 text-xs font-semibold',
-                                    'bg-brand-50 text-brand-700' => $order->status === \App\Enums\OrderStatus::New,
-                                    'bg-amber-50 text-amber-700' => $order->status === \App\Enums\OrderStatus::Processing,
-                                    'bg-sky-50 text-sky-700' => $order->status === \App\Enums\OrderStatus::Shipped,
-                                    'bg-emerald-50 text-emerald-700' => $order->status === \App\Enums\OrderStatus::Completed,
-                                    'bg-zinc-100 text-zinc-500' => $order->status === \App\Enums\OrderStatus::Canceled,
-                                ])>
-                                    {{ $order->status->label() }}
-                                </span>
+                                <x-order-status :status="$order->status" />
 
                                 <x-price :amount="$order->total" class="w-28 text-right font-bold" />
 
