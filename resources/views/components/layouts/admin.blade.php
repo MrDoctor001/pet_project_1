@@ -8,6 +8,7 @@
     <meta name="robots" content="noindex">
 
     <title>{{ $title ? $title.' — Админка' : 'Админка' }} — {{ config('app.name') }}</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
