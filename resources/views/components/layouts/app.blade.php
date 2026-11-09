@@ -240,7 +240,7 @@
 
             <div class="flex flex-col gap-3 text-sm">
                 <p class="font-semibold text-white">Контакты</p>
-                <a href="tel:+77270000000" class="transition hover:text-brand-300">+7 (727) 000-00-00</a>
+                <a href="tel:+77712440236" class="transition hover:text-brand-300">8 (771) 244-02-36</a>
                 <p>Алматы, ежедневно с 9:00 до 21:00</p>
             </div>
         </div>
